@@ -1,17 +1,17 @@
 function [handle] = fig(str,size)
-%FIG Figures labelled by string name.
-% HANDLE = FIG(STR)
+%WILLFIG Figures labelled by string name and sized consistently.
+% HANDLE = WILLFIG(STR)
 %
-% FIG(STR) will bring the figure with name STR to the front and make it the
+% WILLFIG(STR) will bring the figure with name STR to the front and make it the
 % current figure. If there is no figure with name STR, it will also be
 % created. Outputs the numerical figure handle.
 %
 % Examples:
-%   fig('freq response');
-%   handle = fig('coherence')
+%   willfig('freq response')
+%   handle = willfig('coherence')
 %
-% Copyright Will Robertson 2004--2007
-% Please use this code for any purpose you wish.
+% Copyright Will Robertson 2008
+% Distributed under the LaTeX Project Public Licence
 
 if nargin < 1
   str = 'newfig';
