@@ -25,8 +25,12 @@ function legend_handle = labelplot( p , o , str , i)
 %  where <interpreter> can be 'none' (default), 'tex', or 'latex'.
 %
 %
-% v0.5 19 Dec 2007
-% License appended to the source.
+% Please report bugs and feature requests for
+% this package at the development repository:
+%  <http://github.com/wspr/matlabpkg/>
+%
+% LABELPLOT  v0.5a  2009/22/06  Will Robertson
+% Licence appended.
 
 %% Set up default legend placement
 % These can/should be adjusted to suit.
@@ -86,11 +90,29 @@ if nargout==1
   legend_handle = legend_h;
 end
 
-% Copyright 2006 Will Robertson
+return
+
+% Copyright (c) 2006-2009, Will Robertson, wspr 81 at gmail dot com
+% All rights reserved.
 %
-% This MATLAB function may distributed and/or modified
-% under the conditions of the LaTeX Project Public License, 
-% version 1.3c or higher (at your discretion). 
-%   <http://www.latex-project.org/lppl.txt>
-% It consists of the file labelplot.m and is currently
-% maintained by Will Robertson.
+% Distributed under the BSD licence in accordance with the wishes of the
+% Matlab File Exchange.
+%
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
+%     * Redistributions of source code must retain the above copyright
+%       notice, this list of conditions and the following disclaimer.
+%     * Redistributions in binary form must reproduce the above copyright
+%       notice, this list of conditions and the following disclaimer in the
+%       documentation and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER ''AS IS'' AND ANY
+% EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+% WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+% DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY
+% DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+% (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+% LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+% ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+% (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+% THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
