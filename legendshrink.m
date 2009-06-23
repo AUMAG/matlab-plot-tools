@@ -25,15 +25,14 @@ function legendshrink(s,align,lg)
 %   legend({'one' 'two'},'location','north')
 %   legendshrink
 %
-% v0.2 18 Dec 2007
-%      labelplot's legend title is now supported
-%      Multiple legends possible
-%      User-specified aligning if desired
 %
-% v0.1 18 Dec 2007
-%      Initial version
+% Please report bugs and feature requests for
+% this package at the development repository:
+%  <http://github.com/wspr/matlabpkg/>
 %
-% License appended to the source.
+% LEGENDSHRINK  v0.2  2009/22/06  Will Robertson
+% Licence appended.
+
 
 %% Input parsing
 if nargin < 1 || isempty(s),     s = 0.6;        end
@@ -162,10 +161,27 @@ end
 
 end
 
-% Copyright 2007 Will Robertson
+% Copyright (c) 2007-2009, Will Robertson, wspr 81 at gmail dot com
+% All rights reserved.
 %
-% This MATLAB function, legendshrink, may distributed and/or 
-% modified under the conditions of the LaTeX Project Public License, 
-% version 1.3c or higher: <http://www.latex-project.org/lppl.txt>
-% This package consists of the file legendshrink.m and is currently
-% maintained by Will Robertson.
+% Distributed under the BSD licence in accordance with the wishes of the
+% Matlab File Exchange.
+%
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
+%     * Redistributions of source code must retain the above copyright
+%       notice, this list of conditions and the following disclaimer.
+%     * Redistributions in binary form must reproduce the above copyright
+%       notice, this list of conditions and the following disclaimer in the
+%       documentation and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER ''AS IS'' AND ANY
+% EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+% WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+% DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY
+% DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+% (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+% LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+% ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+% (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+% THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
