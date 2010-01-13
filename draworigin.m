@@ -36,6 +36,8 @@ if nargin < 2
   drawH = 1;
   drawV = 1;
 else
+  drawH = 0;
+  drawV = 0;
   if strcmp(hv,'h')
     drawH = 1;
   elseif strcmp(hv,'v')
