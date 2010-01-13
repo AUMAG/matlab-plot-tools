@@ -20,6 +20,8 @@ if nargin < 2
   size = 'large';
 end
 
+cm_to_pt = @(x) x*72/2.54;
+
 if strcmp(size,'small')
   height = 6;
   aratio = 0.8;
@@ -41,10 +43,10 @@ figH = findobj('name',str);
 if isempty(figH)
     figH = figure('Name',str,...
       'NumberTitle','off',...
-      'Units','centimeters'...
+      'color',[1 1 1]...
     );
     hPos = get(figH,'Position');
-    set(figH,'Position',[hPos(1:2) width height]);
+    set(figH,'Position',[hPos(1) hPos(2) cm_to_pt([width height])]);
 else
   figure(figH);
 end
