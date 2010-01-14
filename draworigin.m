@@ -1,4 +1,4 @@
-function [h1out h2out] = draworigin(origin,hv)
+function [h1out h2out] = draworigin(origin,varargin)
 %DRAWORIGIN Plots a vertical/horizontal axis through an origin
 %
 % DRAWORIGIN without arguments will draw an origin in the same style as the
@@ -13,9 +13,15 @@ function [h1out h2out] = draworigin(origin,hv)
 %
 % DRAWORIGIN(ORIGIN) allows the origin to be selected.
 %
-% DRAWORIGIN(ORIGIN,'h') draws the horizontal origin.
+% DRAWORIGIN(ORIGIN,OPTS) allows a variable number of options to be passed
 %
-% DRAWORIGIN(ORIGIN,'v') draws the vertical origin.
+%    'h' - draws the horizontal origin only.
+%    'v' - draws the vertical origin only.
+%    anything else - the linestyle for the origin lines
+%
+% E.g., to draw dashed lines write:
+%
+%    draworigin([0 0],'--')
 %
 % The lines drawn with DRAWORIGIN are ignored from being automatically styled
 % with the COLOURPLOT function by the same author.
@@ -25,25 +31,25 @@ function [h1out h2out] = draworigin(origin,hv)
 % this package at the development repository:
 %  <http://github.com/wspr/matlabpkg/>
 %
-% DRAWORIGIN  v0.1  2009/22/06  Will Robertson
+% DRAWORIGIN  v0.2  2010/13/01  Will Robertson
 % Licence appended.
 
 %% Input argument processing
+
 if nargin < 1
   origin = [0 0];  
 end
-if nargin < 2
-  drawH = 1;
-  drawV = 1;
-else
-  drawH = 0;
-  drawV = 0;
-  if strcmp(hv,'h')
-    drawH = 1;
-  elseif strcmp(hv,'v')
-    drawV = 1;
-  else
-    error('DRAWORIGIN: optional second argument must be ''h'' or ''v''.')
+
+drawH = 1;
+drawV = 1;
+linestyle = '-';
+
+for ii = 1:length(varargin)
+  switch varargin{ii}
+    case 'h', drawV = 0;
+    case 'v', drawH = 0;
+    otherwise
+      linestyle = varargin{ii};
   end
 end
 
@@ -58,14 +64,14 @@ hold on
 if drawH
   xlim = get(gca,'xlim');
   h1 = plot(xlim,[origin(2) origin(2)],'color',[0 0 0],...
-    'linewidth',linewidth,'UserData','colourplot:ignore');
+    'linewidth',linewidth,'linestyle',linestyle,'UserData','colourplot:ignore');
   uistack(h1,'bottom')
 end
 
 if drawV
   ylim = get(gca,'ylim');
   h2 = plot([origin(1) origin(1)],ylim,'color',[0 0 0],...
-    'linewidth',linewidth,'UserData','colourplot:ignore');
+    'linewidth',linewidth,'linestyle',linestyle,'UserData','colourplot:ignore');
   uistack(h2,'bottom')
 end
 
@@ -82,7 +88,7 @@ elseif nargout == 1
 end
 
 
-% Copyright (c) 2009, Will Robertson, wspr 81 at gmail dot com
+% Copyright (c) 2009-2010, Will Robertson, wspr 81 at gmail dot com
 % All rights reserved.
 %
 % Distributed under the BSD licence in accordance with the wishes of the
