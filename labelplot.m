@@ -50,6 +50,7 @@ if nargin < 4 || isempty(i), i = 'none'; end
 % legend index.
 ch = findobj(gca,'Type','line','-not','UserData','colourplot:ignore');
 strings = get(ch,'Tag');
+ch = [ch];
 if length(ch) > 1
   % Remove empty tags:
   legend_index = cellfun('isempty',strings);
