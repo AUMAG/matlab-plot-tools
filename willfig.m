@@ -1,4 +1,4 @@
-function [handle] = fig(str,size)
+function [handle] = willfig(str,size)
 %WILLFIG Figures labelled by string name and sized consistently.
 % HANDLE = WILLFIG(STR)
 %
