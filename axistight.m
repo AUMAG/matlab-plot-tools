@@ -41,6 +41,18 @@ for ii = 1:length(varargin)
       set_tight_axis('ylim');
     case 'z'
       set_tight_axis('zlim');
+    case '+x'
+      set_tight_positive('xlim');
+    case '+y'
+      set_tight_positive('ylim');
+    case '+z'
+      set_tight_positive('zlim');
+    case '-x'
+      set_tight_negative('xlim');
+    case '-y'
+      set_tight_negative('ylim');
+    case '-z'
+      set_tight_negative('zlim');
     otherwise
       error('Only ''x'' or ''y'' or ''z'' axes allowed.')
   end
@@ -51,6 +63,24 @@ end
     lim = get(H,limname);
     lim_range = lim(2)-lim(1);
     lim = [lim(1)-P*lim_range lim(2)+P*lim_range];
+    set(H,limname,lim);
+
+  end
+
+  function set_tight_positive(limname)
+
+    lim = get(H,limname);
+    lim_range = lim(2)-lim(1);
+    lim = [lim(1) lim(2)+P*lim_range];
+    set(H,limname,lim);
+
+  end
+
+  function set_tight_negative(limname)
+
+    lim = get(H,limname);
+    lim_range = lim(2)-lim(1);
+    lim = [lim(1)-P*lim_range lim(2)];
     set(H,limname,lim);
 
   end
