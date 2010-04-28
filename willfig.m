@@ -23,7 +23,7 @@ end
 cm_to_pt = @(x) x*72/2.54;
 
 if strcmp(size,'small')
-  height = 6;
+  height = 7;
   aratio = 0.8;
 elseif strcmp(size,'large')
   height = 8;
