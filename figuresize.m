@@ -16,13 +16,16 @@ function figuresize( w , h , u )
 %
 % Copyright and licence information appended.
 
-if nargin == 1
-  error('Must have at least two inputs.')
-elseif nargin == 2
-  u = 'centimeters';
-elseif nargin > 3
-  error('Too many inputs.')
-end
+p = inputParser;
+p.addRequired('width', @(x) isnumeric(x) && all(size(x)==1) );
+p.addRequired('height',@(x) isnumeric(x) && all(size(x)==1) );
+p.addOptional('units','centimeters',...
+  @(x) any(strcmp(x,{'normalized','centimeters','inches','points'})) );
+
+p.parse( w, h, u );
+w = p.Results.width;
+h = p.Results.height;
+u = p.Results.units;
 
 p = 0.01;
 
