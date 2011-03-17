@@ -65,10 +65,14 @@ end
 if nargout == 0
   for ii = 1:Nch
     if isequal(get(ch(ii),'type'),'line')
-      set(ch(permute(ii)),'color',rgb(mod(ii-1,Ncol)+1,:))
+      set(ch(permute(ii)),'Color',rgb(mod(ii-1,Ncol)+1,:),...
+        'UserData','colourplot:ignore')
     end
     if isequal(get(ch(ii),'type'),'surface')
-      set(ch(permute(ii)),'FaceColor',rgb(mod(ii-1,Ncol)+1,:),'EdgeColor',rgb(mod(ii-1,Ncol)+1,:))
+      set(ch(permute(ii)),...
+        'FaceColor',rgb(mod(ii-1,Ncol)+1,:),...
+        'EdgeColor',rgb(mod(ii-1,Ncol)+1,:),...
+        'UserData','colourplot:ignore')
     end
   end
 else
