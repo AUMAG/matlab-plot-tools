@@ -20,7 +20,7 @@ p = inputParser;
 p.addRequired('width', @(x) isnumeric(x) && all(size(x)==1) );
 p.addRequired('height',@(x) isnumeric(x) && all(size(x)==1) );
 p.addOptional('units','centimeters',...
-  @(x) any(strcmp(x,{'normalized','centimeters','inches','points'})) );
+  @(x) any(strcmpi(x,{'normalized','centimeters','inches','points'})) );
 
 p.parse( w, h, u );
 w = p.Results.width;
