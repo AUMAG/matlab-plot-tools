@@ -33,7 +33,12 @@ Gains=p.Results.gainarray;
 LWidth=p.Results.linewidth;
 
 % Freeze current plot
-hold on;
+hold_bool = false;
+if ishold
+  hold_bool = true;
+else
+  hold on;
+end
 
 %% Draw M-circles
 
@@ -106,7 +111,6 @@ set(gca,'xtick',PCyc(1)*360:30:PCyc(2)*360);
 axis([PCyc(1)*360-15 PCyc(2)*360+15 -80 30]);
 
 % Unfreeze current plot
-hold off;
+if ~hold_bool, hold off; end
 
 end
-% EOF
