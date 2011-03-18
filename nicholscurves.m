@@ -1,150 +1,112 @@
 function nicholscurves(varargin)
-%% plots M and N circles on a nichols plot
+%%NICHOLSCURVES
+% Add M-circles and N-circles to the current figure (assumed to be a nichols chart)
+%
+% Parameters:
+% 'phasecyc'  = [-a b] corresponds to [-360a 360b] on phase axis. Default is [-1 0].
+% 'phaseinc'  = CL phase increment for N-circles. Default is 30.
+% 'labelsize' = Text size of M- and N-circle labels. Default is 10.
+% 'gainarray' = Row vector containing the values of gain for which to plot
+%               M-circles. An entry of 0 is ignored as this causes Inf to
+%               appear. Default is [12 6 3 1 0.5 -0.5 -1 -3 -6 -10 -20 -40 -60].
+% 'linewidth' = Thickness of the lines on the plot. Default is 1.
 
-p = inputParser;
-p.addOptional('labelsize',10);
+% Copyright 2011 Will Robertson
+% Copyright 2011 Philipp Allgeuer
+
+%% Process input arguments
+
+% Parse input arguments
+p=inputParser;
+p.addParamValue('phasecyc',[-1 0],@(x)(isnumeric(x)&&(numel(x)==2)&&(round(x(1))<round(x(2)))));
+p.addParamValue('phaseinc',30,@(x)(isnumeric(x)&&(x>0)));
+p.addParamValue('labelsize',10,@(x)(isnumeric(x)&&(x>=4)));
+p.addParamValue('gainarray',[12 6 3 1 0.5 -0.5 -1 -3 -6 -10 -20 -40 -60],@(x)(isnumeric(x)));
+p.addParamValue('linewidth',1,@(x)(isnumeric(x)&&(x>=0.1)&&(x<=5)));
 p.parse(varargin{:});
 
-MN_fontsize = p.Results.labelsize;
+% Save parsed arguments
+PCyc=round(p.Results.phasecyc);
+PInc=p.Results.phaseinc;
+LSize=p.Results.labelsize;
+Gains=p.Results.gainarray;
+LWidth=p.Results.linewidth;
 
-%% N circles
+% Freeze current plot
+hold on;
 
-nichols_N_u = @(r,T) -0.5 + sqrt((r.^2+1)./(4*r.^2)).*cos(T);
-nichols_N_v = @(r,T) 1./(2*r) + sqrt((r.^2+1)./(4*r.^2)).*sin(T);
+%% Draw M-circles
 
-nichols_n_u = @(N,T) nichols_N_u(tan(N),T);
-nichols_n_v = @(N,T) nichols_N_v(tan(N),T);
+% Define equations that determine the M-circles
+RadM=@(m) abs(m/(m^2-1));
+CentreM=@(m) m^2/(1-m^2);
+Ny=@(mdb,t) CentreM(10^(mdb/20))+RadM(10^(mdb/20)).*(cosd(t)+1i.*sind(t));
+Ni_Ph=@(mdb,t) rad2deg(unwrap(angle(Ny(mdb,t))));
+Ni_Ga=@(mdb,t) 20.*log10(abs(Ny(mdb,t)));
 
-nichols_n_p = @(N,T) ...
-  180/pi*unwrap(angle( ...
-    nichols_n_u(pi/180*N,T) +1i*nichols_n_v(pi/180*N,T) ...
-  ));
+% Generate the colour space
+CalcRgb=@(mdb) hsv2rgb([((mdb-min(Gains))/(max(Gains)-min(Gains)))^3 0.5 0.8]);
 
-nichols_n_m = @(N,T) ...
-  20*log10(abs( ...
-    nichols_n_u(pi/180*N,T) +1i*nichols_n_v(pi/180*N,T) ...
-  ));
-
-Ncircles = [-90:20:90];
-
-Npoint = @(r) -sign(r).*acos(1./sqrt(1+ 1./tan(r).^2));
-
-Nbranch_angles = Npoint(Ncircles*pi/180);
-
-ll = 0.5;
-
-for ii = 1:length(Ncircles)
-  TT = [
-    fliplr(...
-      logspace(...
-        log10(pi+Nbranch_angles(ii)),...
-        log10(2*pi+Nbranch_angles(ii)-1e-10),...
-        1000 ...
-      )...
-    ) ...
-    logspace(...
-      log10(3*pi+Nbranch_angles(ii)),...
-      log10(2*pi+Nbranch_angles(ii)+1e-10),...
-      1000 ...
-    )...
-    ];
-  plot( nichols_n_p(Ncircles(ii),TT), nichols_n_m(Ncircles(ii),TT) ,...
-    'color', 0.9*[1 1 1],...
-    'linewidth',ll)
+% Apply M-circle equations and plot the result
+for i=Gains
+    PVals=Ni_Ph(i,0:360);
+    GVals=Ni_Ga(i,0:360);
+    for j=PCyc(1):PCyc(2)-1
+        plot(PVals+j*360,GVals,'color',CalcRgb(i),'linewidth',LWidth);
+        TextX=Ni_Ph(i,210)+(j+1)*360;
+        TextY=Ni_Ga(i,210);
+        text(TextX,TextY,[num2str(i) 'dB'],'FontSize',LSize,'horizontalalignment','center');
+    end
 end
 
-% labels
+%% Draw N-circles
 
-LL = 1.99*pi;
-for nn = Ncircles(Ncircles < 0 & Ncircles > -90)
-  text( nichols_n_p(nn,LL), nichols_n_m(nn,LL) , ...
-    [num2str(nn),'°'],...
-    'UserData',['matlabfrag:','\fboxsep=0pt\colorbox{white}{$\,',num2str(nn),'$\textdegree}'], ...
-    'FontSize', MN_fontsize,...
-    'horizontalalignment','center',...
-    'Interpreter','none')
+% Define equations that determine the N-circles
+RadN=@(phi) 1./(2.*abs(sind(phi)));
+Ny_Re=@(phi,t) -0.5+RadN(phi).*cosd(t+mod(phi,180)-90);
+Ny_Im=@(phi,t) 1./(2.*tand(phi))+RadN(phi).*sind(t+mod(phi,180)-90);
+Ni_Ph=@(phi,t) rad2deg(unwrap(angle(Ny_Re(phi,t)+1i*Ny_Im(phi,t))))+360*floor(phi/360);
+Ni_Ga=@(phi,t) 20.*log10(abs(Ny_Re(phi,t)+1i*Ny_Im(phi,t)));
+Ni_La=@(phase) 0.090*10^(phase/60);
+
+% Create input vectors
+Phi=PCyc(1)*360:PInc:PCyc(2)*360;
+T1=logspace(-4,log10(180),300);
+T2=[T1 360-fliplr(T1)];
+
+% Apply N-circle equations and plot the result
+for i=Phi
+    if abs(sind(i))<1e-3
+        plot([i i],[-110,25],'color',0.75*[1 1 1],'linewidth',LWidth);
+        if cosd(i)>0
+            TextX=i;
+            TextY=1;
+        else
+            TextX=i;
+            TextY=-46.5;
+        end
+    else
+        plot(Ni_Ph(i,T2),Ni_Ga(i,T2),'color',0.75*[1 1 1],'linewidth',LWidth);
+        Offset=i-180*floor(i/180);
+        if(sign(sind(i))==1)
+            TextX=Ni_Ph(i,Ni_La(180-Offset));
+            TextY=Ni_Ga(i,Ni_La(180-Offset));
+        else
+            TextX=Ni_Ph(i,-Ni_La(Offset))+360;
+            TextY=Ni_Ga(i,-Ni_La(Offset));
+        end
+    end
+    text(TextX,TextY,num2str(i),'FontSize',LSize,'horizontalalignment','center');
 end
 
-LL = 1.99*pi;
-for nn = Ncircles(Ncircles >= 0 & Ncircles < 90)
-  text( nichols_n_p(nn,LL)-360, nichols_n_m(nn,LL) , ...
-    [num2str(nn),'°'],...
-    'UserData',['matlabfrag:','\fboxsep=0pt\colorbox{white}{$\,',num2str(nn),'$\textdegree}'], ...
-    'FontSize', MN_fontsize,...
-    'horizontalalignment','center',...
-    'Interpreter','none')
-end
+%% Finish up
 
-LL = [-85.3 -76 -64 -55 -35 -20 -13]*pi/180;
-ii = 0;
-for nn = Ncircles
-  ii = ii+1;
-  text( nn-180, -30 , ...
-    [num2str(nn),'°'],...
-    'UserData',['matlabfrag:','\fboxsep=0pt\colorbox{white}{$\,',num2str(nn),'$\textdegree}'], ...
-    'FontSize', MN_fontsize,...
-    'horizontalalignment','center',...
-    'Interpreter','none')
-end
+% Modify ticks to nicely cover the required range of phases
+set(gca,'xtick',PCyc(1)*360:30:PCyc(2)*360);
+axis([PCyc(1)*360-15 PCyc(2)*360+15 -80 30]);
 
-%% M circles
-
-nichols_u = @(r,T) -(r.^2./(-1 + r.^2)) + (r.*cos(T))./(-1 + r.^2);
-nichols_v = @(r,T) (r.*sin(T))./(-1 + r.^2);
-
-nichols_p = @(N,T) 180/pi*unwrap(angle( nichols_u(N,T) +1i*nichols_v(N,T) ));
-nichols_pn = @(N,T) 180/pi*(angle( nichols_u(N,T) +1i*nichols_v(N,T) ));
-nichols_m = @(N,T) 20*log10( abs(nichols_u(N,T) +1i*nichols_v(N,T)) );
-
-Mcircles_n = [-0.5 -1 -3 -6 -10 -20 -40 -60];
-Mcircles_p = [12 6 3 1 0.5];
-
-Ncol = length(Mcircles_n)+length(Mcircles_p);
-hsv = ones(Ncol,3);
-hsv(:,1) = ((1:Ncol)-1)'/Ncol;
-hsv(:,2) = 0.5;
-hsv(:,3) = 0.8;
-rgb = hsv2rgb(hsv);
-
-TT = linspace(-pi,pi,500);
-NN = 10.^(Mcircles_p/20);
-ii = 0;
-for nn = NN
-  ii = ii+1;
-  plot( nichols_p(nn,TT), nichols_m(nn,TT) , 'color', rgb(ii,:),'linewidth',ll)
-  plot( 360+nichols_p(nn,TT), nichols_m(nn,TT) , 'color', rgb(ii,:),'linewidth',ll)
-  plot( -360+nichols_p(nn,TT), nichols_m(nn,TT) , 'color', rgb(ii,:),'linewidth',ll)
-  LL = -pi;
-  text( nichols_p(nn,LL), nichols_m(nn,LL) , ...
-    [num2str(20*log10(nn)),'dB'],...
-    'UserData',['matlabfrag:','\fboxsep=0pt\colorbox{white}{$',num2str(20*log10(nn)),'$\,dB}'],...
-    'FontSize', MN_fontsize,...
-    'horizontalalignment','center',...
-    'Interpreter','none')
-end
-
-ll = 0.5;
-TT = linspace(0.0001,2*pi,500);
-NN = 10.^(Mcircles_n/20);
-jj = ii;
-for nn = NN
-  ii = ii+1;
-  plot( nichols_pn(nn,TT), nichols_m(nn,TT) , 'color', rgb(ii,:),'linewidth',ll)
-  plot( -360+nichols_pn(nn,TT), nichols_m(nn,TT) , 'color', rgb(ii,:),'linewidth',ll)
-  plot( 360+nichols_pn(nn,TT), nichols_m(nn,TT) , 'color', rgb(ii,:),'linewidth',ll)
-  plot( -720+nichols_pn(nn,TT), nichols_m(nn,TT) , 'color', rgb(ii,:),'linewidth',ll)
-  LL = 165*pi/180;
-  text( nichols_pn(nn,LL), nichols_m(nn,LL) , ...
-    [num2str(20*log10(nn)),'dB'],...
-    'UserData',['matlabfrag:','\fboxsep=0pt\colorbox{white}{$\,',num2str(20*log10(nn)),'$\,dB}'], ...
-    'FontSize', MN_fontsize,...
-    'Interpreter','none')
-end
-
-%% rescale axis
-
-xticks = get(gca,'xtick');
-xticks_rounded = round(xticks/180)*180; 
-set(gca,'xtick',xticks_rounded(1):45:xticks_rounded(end))
+% Unfreeze current plot
+hold off;
 
 end
+% EOF
