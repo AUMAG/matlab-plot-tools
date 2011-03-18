@@ -101,7 +101,7 @@ for i=Phi
             TextY=Ni_Ga(i,-Ni_La(Offset));
         end
     end
-    text(TextX,TextY,num2str(i),'FontSize',LSize,'horizontalalignment','center');
+    text(TextX,TextY,[num2str(i),'°'],'FontSize',LSize,'horizontalalignment','center');
 end
 
 %% Finish up
