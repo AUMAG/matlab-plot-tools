@@ -28,12 +28,18 @@ if strcmp(size,'small')
 elseif strcmp(size,'large')
   height = 8;
   aratio = 0.8;
+elseif strcmp(size,'huge')
+  height = 12;
+  aratio = 0.8;
 elseif strcmp(size,'3x2')
   height = 12;
   aratio = 0.7;
 elseif strcmp(size,'tiny')
   height = 6;
   aratio = 0.8;
+elseif strcmp(size,'square')
+  height = 7;
+  aratio = 1;
 elseif strcmp(size,'small-legend')
   height = 6;
   aratio = 0.4;
@@ -60,9 +66,6 @@ if isempty(figH)
 else
   figure(figH);
 end
-
-clf
-hold on
 
 if nargout > 0
   handle = figH;

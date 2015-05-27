@@ -16,19 +16,22 @@ function  axistight( H, P, varargin )
 % AXIS_TIGHT(H,P) - adjust the ratio used to extend the axis.
 %
 % AXIS_TIGHT(H,P,'x') - as above but for the 'x' axis.
+% AXIS_TIGHT(H,P,'+x') - as above but for the positive 'x' axis.
+% AXIS_TIGHT(H,P,'-x') - as above but for the negative 'x' axis.
 %
 % AXIS_TIGHT(H,P,'x','y') - as above but for the 'x' and 'y' axes.
 %                           Similarly for 'z'.
 %
 % Any combination of 'x', 'y', and/or 'z' in any order is permissible.
+% Defaults for the first two options can be specified with "[]".
 %
 % Will Robertson
-% 13 Jan 2010
+% 2010-2011
 %
 % Copyright and licence information appended.
 
-if nargin < 1, H = gca; end
-if nargin < 2, P = 0.05; end
+if nargin < 1 || isempty(H), H = gca; end
+if nargin < 2 || isempty(P), P = 0.05; end
 if isempty(varargin), varargin = {'y'}; end
 
 axis(H,'tight');
@@ -87,11 +90,11 @@ end
 
 end
 
-% Copyright (c) 2010 Will Robertson, wspr 81 at gmail dot com
+% Copyright (c) 2010-2011 Will Robertson, wspr 81 at gmail dot com
 % All rights reserved.
 %
 % Distributed under the BSD licence in accordance with the wishes of the
-% Matlab File Exchange. (Usually I'd pick the Apache License.)
+% Matlab File Exchange. (Usually I'd pick the Apache License, but I'm easy.)
 %
 % Redistribution and use in source and binary forms, with or without
 % modification, are permitted provided that the following conditions are met:

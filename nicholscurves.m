@@ -10,6 +10,8 @@ function nicholscurves(varargin)
 %               M-circles. An entry of 0 is ignored as this causes Inf to
 %               appear. Default is [12 6 3 1 0.5 -0.5 -1 -3 -6 -10 -20 -40 -60].
 % 'linewidth' = Thickness of the lines on the plot. Default is 1.
+% 'frag'      = true or false; whether to use matlabfrab to print labels.
+% 'nlabels'   = true or false; whether to label the N circles
 
 % Copyright 2011 Will Robertson
 % Copyright 2011 Philipp Allgeuer
@@ -23,6 +25,8 @@ p.addParamValue('phaseinc',30,@(x)(isnumeric(x)&&(x>0)));
 p.addParamValue('labelsize',10,@(x)(isnumeric(x)&&(x>=4)));
 p.addParamValue('gainarray',[12 6 3 1 0.5 -0.5 -1 -3 -6 -10 -20 -40 -60],@(x)(isnumeric(x)));
 p.addParamValue('linewidth',1,@(x)(isnumeric(x)&&(x>=0.1)&&(x<=5)));
+p.addParamValue('frag',false);
+p.addParamValue('nlabels',true);
 p.parse(varargin{:});
 
 % Save parsed arguments
@@ -31,6 +35,8 @@ PInc=p.Results.phaseinc;
 LSize=p.Results.labelsize;
 Gains=p.Results.gainarray;
 LWidth=p.Results.linewidth;
+frag_bool = p.Results.frag;
+nlabels_bool = p.Results.nlabels;
 
 % Freeze current plot
 hold_bool = false;
@@ -52,6 +58,15 @@ Ni_Ga=@(mdb,t) 20.*log10(abs(Ny(mdb,t)));
 % Generate the colour space
 CalcRgb=@(mdb) hsv2rgb([((mdb-min(Gains))/(max(Gains)-min(Gains)))^3 0.5 0.8]);
 
+if frag_bool
+  user_data = @(nn) ['matlabfrag:',...
+                     '\fboxsep=0pt\colorbox{white}{$\,',...
+                     num2str(nn),...
+                     '$\,dB}'];
+else
+  user_data = @(nn) '';
+end
+
 % Apply M-circle equations and plot the result
 for i=Gains
     PVals=Ni_Ph(i,0:360);
@@ -60,7 +75,10 @@ for i=Gains
         plot(PVals+j*360,GVals,'color',CalcRgb(i),'linewidth',LWidth);
         TextX=Ni_Ph(i,210)+(j+1)*360;
         TextY=Ni_Ga(i,210);
-        text(TextX,TextY,[num2str(i) 'dB'],'FontSize',LSize,'horizontalalignment','center');
+        text(TextX,TextY,[num2str(i) 'dB'],...
+          'FontSize',LSize,..., ...
+          'horizontalalignment','center',...
+          'UserData',user_data(i));
     end
 end
 
@@ -78,6 +96,15 @@ Ni_La=@(phase) 0.090*10^(phase/60);
 Phi=PCyc(1)*360:PInc:PCyc(2)*360;
 T1=logspace(-4,log10(180),300);
 T2=[T1 360-fliplr(T1)];
+
+if frag_bool
+  user_data = @(nn) ['matlabfrag:',...
+                     '\fboxsep=0pt\colorbox{white}{$\,',...
+                     num2str(nn),...
+                     '$\textdegree}'];
+else
+  user_data = @(nn) '';
+end
 
 % Apply N-circle equations and plot the result
 for i=Phi
@@ -101,10 +128,18 @@ for i=Phi
             TextY=Ni_Ga(i,-Ni_La(Offset));
         end
     end
-    text(TextX,TextY,[num2str(i),'°'],'FontSize',LSize,'horizontalalignment','center');
+    if nlabels_bool
+      text(TextX,TextY,[num2str(i),'°'],...
+        'FontSize',LSize,...
+        'horizontalalignment','center',...
+        'UserData',user_data(i));
+    end
 end
 
 %% Finish up
+
+% Want a box:
+set(gca,'box','on')
 
 % Modify ticks to nicely cover the required range of phases
 set(gca,'xtick',PCyc(1)*360:30:PCyc(2)*360);
