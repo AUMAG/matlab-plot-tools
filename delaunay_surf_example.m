@@ -109,6 +109,8 @@ for ii = 1:nx*ny
 
 end
 
+%%
+
 figure(102);
 nx = 2; ny = 2;
 for ii = 1:nx*ny
@@ -119,3 +121,15 @@ for ii = 1:nx*ny
   view(2)
 
 end
+
+%%
+
+figure(102); clf; hold on
+
+p1 = delaunay_surf(x,y,z,'N',1);
+p2 = delaunay_surf(x,y,z,'N',0);
+set(p1,'facecolor','none','edgecolor','red')
+set(p2,'facecolor','none','linewidth',2)
+view(2)
+
+
