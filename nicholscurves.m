@@ -11,6 +11,7 @@ function nicholscurves(varargin)
 %               appear. Default is [12 6 3 1 0.5 -0.5 -1 -3 -6 -10 -20 -40 -60].
 % 'linewidth' = Thickness of the lines on the plot. Default is 1.
 % 'frag'      = true or false; whether to use matlabfrab to print labels.
+% 'mlabels'   = true or false; whether to label the M circles
 % 'nlabels'   = true or false; whether to label the N circles
 
 % Copyright 2011 Will Robertson
@@ -27,6 +28,9 @@ p.addParamValue('gainarray',[12 6 3 1 0.5 -0.5 -1 -3 -6 -10 -20 -40 -60],@(x)(is
 p.addParamValue('linewidth',1,@(x)(isnumeric(x)&&(x>=0.1)&&(x<=5)));
 p.addParamValue('frag',false);
 p.addParamValue('nlabels',true);
+p.addParamValue('mlabels',true);
+p.addParamValue('mlabelangle',[210 210]);
+p.addParamValue('axislabels',true);
 p.parse(varargin{:});
 
 % Save parsed arguments
@@ -37,6 +41,9 @@ Gains=p.Results.gainarray;
 LWidth=p.Results.linewidth;
 frag_bool = p.Results.frag;
 nlabels_bool = p.Results.nlabels;
+mlabels_bool = p.Results.mlabels;
+mlabelanglep = p.Results.mlabelangle(1);
+mlabelanglen = p.Results.mlabelangle(2);
 
 % Freeze current plot
 hold_bool = false;
@@ -44,6 +51,11 @@ if ishold
   hold_bool = true;
 else
   hold on;
+end
+
+if p.Results.axislabels
+   xlabel('Phase, deg.')
+   ylabel('Amplitude, dB')
 end
 
 %% Draw M-circles
@@ -56,11 +68,11 @@ Ni_Ph=@(mdb,t) rad2deg(unwrap(angle(Ny(mdb,t))));
 Ni_Ga=@(mdb,t) 20.*log10(abs(Ny(mdb,t)));
 
 % Generate the colour space
-CalcRgb=@(mdb) hsv2rgb([((mdb-min(Gains))/(max(Gains)-min(Gains)))^3 0.5 0.8]);
+CalcRgb=@(mdb) hsv2rgb([((mdb-min(Gains))/(max(Gains)-min(Gains)))^1.5 0.5 0.8]);
 
 if frag_bool
   user_data = @(nn) ['matlabfrag:',...
-                     '\fboxsep=0pt\colorbox{white}{$\,',...
+                     '\fboxsep=1pt\colorbox{white}{$\,',...
                      num2str(nn),...
                      '$\,dB}'];
 else
@@ -69,16 +81,28 @@ end
 
 % Apply M-circle equations and plot the result
 for i=Gains
-    PVals=Ni_Ph(i,0:360);
-    GVals=Ni_Ga(i,0:360);
+    PVals=Ni_Ph(i,0:0.1:360);
+    GVals=Ni_Ga(i,0:0.1:360);
     for j=PCyc(1):PCyc(2)-1
         plot(PVals+j*360,GVals,'color',CalcRgb(i),'linewidth',LWidth);
-        TextX=Ni_Ph(i,210)+(j+1)*360;
-        TextY=Ni_Ga(i,210);
-        text(TextX,TextY,[num2str(i) 'dB'],...
-          'FontSize',LSize,..., ...
-          'horizontalalignment','center',...
-          'UserData',user_data(i));
+        if mlabels_bool
+            if sign(i) > 0
+                mla = mlabelanglep;
+            else
+                mla = mlabelanglen;
+            end
+            if mla > 180
+                offset = (j+1)*360;
+            else
+                offset = j*360;
+            end
+            TextX=Ni_Ph(i,mla)+offset;
+            TextY=Ni_Ga(i,mla);
+            text(TextX,TextY,[num2str(i) 'dB'],...
+                'FontSize',LSize,..., ...
+                'horizontalalignment','center',...
+                'UserData',user_data(i));
+        end
     end
 end
 
