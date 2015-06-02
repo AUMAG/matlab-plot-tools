@@ -21,16 +21,16 @@ function nicholscurves(varargin)
 
 % Parse input arguments
 p=inputParser;
-p.addParamValue('phasecyc',[-1 0],@(x)(isnumeric(x)&&(numel(x)==2)&&(round(x(1))<round(x(2)))));
-p.addParamValue('phaseinc',30,@(x)(isnumeric(x)&&(x>0)));
-p.addParamValue('labelsize',10,@(x)(isnumeric(x)&&(x>=4)));
-p.addParamValue('gainarray',[12 6 3 1 0.5 -0.5 -1 -3 -6 -10 -20 -40 -60],@(x)(isnumeric(x)));
-p.addParamValue('linewidth',1,@(x)(isnumeric(x)&&(x>=0.1)&&(x<=5)));
-p.addParamValue('frag',false);
-p.addParamValue('nlabels',true);
-p.addParamValue('mlabels',true);
-p.addParamValue('mlabelangle',[210 210]);
-p.addParamValue('axislabels',true);
+p.addParameter('phasecyc',[-1 0],@(x)(isnumeric(x)&&(numel(x)==2)&&(round(x(1))<round(x(2)))));
+p.addParameter('phaseinc',30,@(x)(isnumeric(x)&&(x>0)));
+p.addParameter('labelsize',10,@(x)(isnumeric(x)&&(x>=4)));
+p.addParameter('gainarray',[12 6 3 1 0.5 -0.5 -1 -3 -6 -10 -20 -40 -60],@(x)(isnumeric(x)));
+p.addParameter('linewidth',1,@(x)(isnumeric(x)&&(x>=0.1)&&(x<=5)));
+p.addParameter('frag',false);
+p.addParameter('nlabels',true);
+p.addParameter('mlabels',true);
+p.addParameter('mlabelangle',[210 210]);
+p.addParameter('axislabels',true);
 p.parse(varargin{:});
 
 % Save parsed arguments
