@@ -20,13 +20,19 @@ p = inputParser;
 p.addRequired('width', @(x) isnumeric(x) && all(size(x)==1) );
 p.addRequired('height',@(x) isnumeric(x) && all(size(x)==1) );
 p.addOptional('units','centimeters',...
-  @(x) any(strcmpi(x,{'normalized','centimeters','inches','points'})) );
+  @(x) any(strcmpi(x,{'normalized','centimeters','cm','inches','in','points','pt'})) );
 
 p.parse( w, h, u );
 w = p.Results.width;
 h = p.Results.height;
 u = p.Results.units;
 
+switch u
+  case 'cm', u = 'centimeters';
+  case 'in', u = 'inches';
+  case 'pt', u = 'points';
+end
+  
 p = 0.01;
 
 set(gcf,'Units',u);
