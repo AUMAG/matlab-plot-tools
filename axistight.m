@@ -1,5 +1,5 @@
 function  axistight( H, P, varargin )
-%AXIS_TIGHT Makes a plot axis tight but not too tight
+%AXISTIGHT Makes a plot axis tight but not too tight
 %
 % Matlab's command `axis tight` sets the axis limits until they are just
 % touching the plot extrema. This can be sometimes unsightly and in such
@@ -9,17 +9,17 @@ function  axistight( H, P, varargin )
 % This command does such a thing, using a certain percentage of the total
 % plot range as padding. By default only the 'y' axis is affected.
 %
-% AXIS_TIGHT - extends the 'y' axis to 5% past `axis tight`.
+% AXISTIGHT - extends the 'y' axis to 5% past `axis tight`.
 %
-% AXIS_TIGHT(H) - as above for plot with handle H.
+% AXISTIGHT(H) - as above for plot with handle H.
 %
-% AXIS_TIGHT(H,P) - adjust the ratio used to extend the axis.
+% AXISTIGHT(H,P) - adjust the ratio used to extend the axis.
 %
-% AXIS_TIGHT(H,P,'x') - as above but for the 'x' axis.
-% AXIS_TIGHT(H,P,'+x') - as above but for the positive 'x' axis.
-% AXIS_TIGHT(H,P,'-x') - as above but for the negative 'x' axis.
+% AXISTIGHT(H,P,'x') - as above but for the 'x' axis.
+% AXISTIGHT(H,P,'+x') - as above but for the positive 'x' axis.
+% AXISTIGHT(H,P,'-x') - as above but for the negative 'x' axis.
 %
-% AXIS_TIGHT(H,P,'x','y') - as above but for the 'x' and 'y' axes.
+% AXISTIGHT(H,P,'x','y') - as above but for the 'x' and 'y' axes.
 %                           Similarly for 'z'.
 %
 % Any combination of 'x', 'y', and/or 'z' in any order is permissible.
