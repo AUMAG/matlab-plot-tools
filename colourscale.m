@@ -1,11 +1,11 @@
 
-function [ RGBOUT ] = colourscaleplot( color , series , permute )
-%COLOURPLOT Make colourful, nice-looking plots
+function [ RGBOUT ] = colourscale( varargin )
+%COLOURSCALEPLOT Make colourful, nice-looking plots
 %  This function takes the current figure and applies a series of colours
 %  to each "line". These colours are a spectrum of saturations and intensities for
 %  a given colour hue. 
 %
-% COLOURPLOT(H)
+% COLOURSCALE('hue',H)
 %  Use hue H for colour scheme. Since H is a standard "HSV" hue, it varies
 %  from zero to one, where approximately:
 %      H=0.0  - red
@@ -18,7 +18,7 @@ function [ RGBOUT ] = colourscaleplot( color , series , permute )
 %      H=0.85 - magenta
 %      H=1.0  - red again
 %
-% COLOURPLOT(C,N)
+% COLOURSCALE(...,'repeat',N)
 %  An optional argument specifies the number of times to use the
 %  colour space: e.g., colourplot(2) will turn, in a graph with 6 data
 %  series, the first and fourth plot blue, the second and fifth
@@ -26,7 +26,7 @@ function [ RGBOUT ] = colourscaleplot( color , series , permute )
 %  plots and the number of colour space repetitions must be an
 %  integer.
 %
-% COLOURPLOT(C,N,PERMUTE)
+% COLOURSCALE(...,'permute',P)
 %  By default the lines are coloured in the order in which they
 %  were plot. This order can be changed by specifying a permutation
 %  of the order in the second argument, such as in a four-plot graph:
@@ -35,7 +35,7 @@ function [ RGBOUT ] = colourscaleplot( color , series , permute )
 %  If the 'UserData' for a data line is 'colourplot:ignore', then
 %  it will not be included in the COLOURPLOT colouring.
 %
-%  RGBOUT = colourplot( ... ) will simply return the colours that
+%  RGBOUT = colourscale( ... ) will simply return the colours that
 %  would be used, but it will NOT attempt to colour the plot.
 %
 %
@@ -46,11 +46,26 @@ function [ RGBOUT ] = colourscaleplot( color , series , permute )
 % COLOURSCALEPLOT  v0.1  Will Robertson
 % Licence appended.
 
-if nargin < 2
-  series = 1;
-end
-if nargin < 1
-  color = 0.2;
+p = inputParser;
+p.addOptional('hue',0.2);
+p.addOptional('chroma',70);
+p.addOptional('repeat',1);
+p.addOptional('permute',[]);
+p.addOptional('lumin_min',[65 50 40 30]);
+p.addOptional('lumin_max',[65 80 80 90]);
+p.addOptional('linewidth',[1 2]);
+
+p.parse(varargin{:});
+
+hue     = p.Results.hue;
+chroma  = p.Results.chroma;
+series  = p.Results.repeat;
+permute = p.Results.permute;
+lumin_min = p.Results.lumin_min;
+lumin_max = p.Results.lumin_max;
+lw_range = p.Results.linewidth;
+if numel(lw_range) == 1
+  lw_range = lw_range([1 1]);
 end
 
 ch = findobj(gca,'Type','line','-not','UserData','colourplot:ignore');
@@ -71,18 +86,20 @@ else
   ncol1 = Ncol/2;
   ncol2 = Ncol/2;
 end
-v1 = color/2; v2 = 1;
+v1 = hue/2; v2 = 1;
 
-switch Ncol
-  case 1, lmin = 65; lmax = 65;
-  case 2, lmin = 50; lmax = 80;
-  case 3, lmin = 40; lmax = 80;
-  otherwise, 
-          lmin = 40; lmax = 85;
+Nlum = numel(lumin_max);
+if numel(lumin_min) ~= numel(lumin_max)
+  error('Min and max luminance vectors must be equal size.')
 end
 
-hcl(:,1) = color*360;
-hcl(:,2) = 80;
+lmin = lumin_min(min([Ncol,Nlum]));
+lmax = lumin_max(min([Ncol,Nlum]));
+
+lw = linspace(lw_range(1),lw_range(2),Ncol);
+
+hcl(:,1) = hue*360;
+hcl(:,2) = chroma;
 hcl(:,3) = linspace(lmin,lmax,Ncol)';
 
 rgb = nan(size(hcl));
@@ -91,7 +108,7 @@ for ii = 1:Ncol
 end
 rgb = rgb/255;
 
-if nargin < 2
+if isempty(permute)
   permute = 1:Nch;
 else
   if ~isequal(sort(permute),1:Nch)
@@ -101,14 +118,17 @@ end
 
 if nargout == 0
   for ii = 1:Nch
+    ind = mod(ii-1,Ncol)+1;
     if isequal(get(ch(ii),'type'),'line')
-      set(ch(permute(ii)),'Color',rgb(mod(ii-1,Ncol)+1,:),...
+      set(ch(permute(ii)),...
+        'Color',rgb(ind,:),...
+        'LineWidth',lw(ind),...
         'UserData','colourplot:ignore')
     end
     if isequal(get(ch(ii),'type'),'surface')
       set(ch(permute(ii)),...
-        'FaceColor',rgb(mod(ii-1,Ncol)+1,:),...
-        'EdgeColor',rgb(mod(ii-1,Ncol)+1,:),...
+        'FaceColor',rgb(ind,:),...
+        'EdgeColor',rgb(ind,:),...
         'UserData','colourplot:ignore')
     end
   end
