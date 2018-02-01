@@ -10,7 +10,8 @@ N = 3;
 p = 20;
 
 % colour: (0-1)
-H = 0.6;
+HUE = 0.1;
+CHROMA = 60;
 
 % linewidths:
 LW = [2 4]; % more exaggerated than default
@@ -22,8 +23,8 @@ for m = 1:M
     subplot(M,N,c); cla;
     xx = linspace(0,1,p);
     yy = repmat(1:c,[p 1])+rand(p,c);
-    plot(xx,yy)
-    colourscale('hue',H,'linewidth',LW);
+    plot(xx,yy,'linewidth',5)
+    colourscale('hue',HUE,'chroma',CHROMA,'linewidth',LW);
     title(['Number of lines: ',num2str(c)])
     axis tight
   end

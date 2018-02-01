@@ -5,7 +5,7 @@ function [ RGBOUT ] = colourscale( varargin )
 %  to each "line". These colours are a spectrum of saturations and intensities for
 %  a given colour hue. 
 %
-% COLOURSCALE('hue',H)
+% COLOURSCALE(...,'hue',H)
 %  Use hue H for colour scheme. Since H is a standard "HSV" hue, it varies
 %  from zero to one, where approximately:
 %      H=0.0  - red
@@ -17,6 +17,20 @@ function [ RGBOUT ] = colourscale( varargin )
 %      H=0.75 - purple
 %      H=0.85 - magenta
 %      H=1.0  - red again
+%
+% COLOURSCALE(...,'chroma',C)
+%  Use chroma C for colour scheme. Chroma appears to be a nonlinear
+%  parameter with sensible maximum; values around 40 to 100 appear to be
+%  best, although higher than this produces brighter colours they also
+%  start clipping what is possible represent in RGB.
+%
+% COLOURSCALE(...,'linewidth',[LW1 LW2])
+%  If not specified, the plots take on their "natural" linewidth as default
+%  or as specified by the user. If set to a two-element vector, the
+%  linewidths of the lines will be set to vary linearly from LW1 to LW2 as
+%  the plots change colour from dark to light. (This is useful as lighter
+%  lines often need to be slightly thicker to remain visible compared to
+%  darker lines.)
 %
 % COLOURSCALE(...,'repeat',N)
 %  An optional argument specifies the number of times to use the
@@ -53,7 +67,7 @@ p.addOptional('repeat',1);
 p.addOptional('permute',[]);
 p.addOptional('lumin_min',[65 50 40 30]);
 p.addOptional('lumin_max',[65 80 80 90]);
-p.addOptional('linewidth',[1 2]);
+p.addOptional('linewidth',[]);
 
 p.parse(varargin{:});
 
@@ -64,8 +78,11 @@ permute = p.Results.permute;
 lumin_min = p.Results.lumin_min;
 lumin_max = p.Results.lumin_max;
 lw_range = p.Results.linewidth;
-if numel(lw_range) == 1
-  lw_range = lw_range([1 1]);
+
+if ~isempty(lw_range)
+  if numel(lw_range) == 1
+    lw_range = lw_range([1 1]);
+  end
 end
 
 ch = findobj(gca,'Type','line','-not','UserData','colourplot:ignore');
@@ -96,7 +113,9 @@ end
 lmin = lumin_min(min([Ncol,Nlum]));
 lmax = lumin_max(min([Ncol,Nlum]));
 
-lw = linspace(lw_range(1),lw_range(2),Ncol);
+if ~isempty(lw_range)
+  lw = linspace(lw_range(1),lw_range(2),Ncol);
+end
 
 hcl(:,1) = hue*360;
 hcl(:,2) = chroma;
@@ -120,10 +139,16 @@ if nargout == 0
   for ii = 1:Nch
     ind = mod(ii-1,Ncol)+1;
     if isequal(get(ch(ii),'type'),'line')
-      set(ch(permute(ii)),...
-        'Color',rgb(ind,:),...
-        'LineWidth',lw(ind),...
-        'UserData','colourplot:ignore')
+      if isempty(lw_range)
+        set(ch(permute(ii)),...
+          'Color',rgb(ind,:),...
+          'UserData','colourplot:ignore')
+      else
+        set(ch(permute(ii)),...
+          'Color',rgb(ind,:),...
+          'LineWidth',lw(ind),...
+          'UserData','colourplot:ignore')
+      end
     end
     if isequal(get(ch(ii),'type'),'surface')
       set(ch(permute(ii)),...
@@ -175,6 +200,8 @@ function rgb = hcl2rgb(h, c, l)
 
 % Code written by Nicholas J. Hughes, 2014, released under the following
 % licence.
+%
+% Some minor alternations by Will Robertson, 2018.
 %
 % The MIT License (MIT)
 %
@@ -236,16 +263,18 @@ g = gamma_correct((-0.969256*X + 1.875992*Y + 0.041556*Z)/WHITE_Y);
 b = gamma_correct((0.055648*X - 0.204043*Y + 1.057311*Z)/WHITE_Y);
 
 % Round to integers and correct
-r = round(255 * r);
-g = round(255 * g);
-b = round(255 * b);
-r(r > 255) = 255;
-r(r < 0) = 0;
-g(g > 255) = 255;
-g(g < 0) = 0;
-b(b > 255) = 255;
-b(b < 0) = 0;
 rgb = [r, g, b];
+rgb = round(255 * rgb);
+
+% if any(rgb(:) > 255)
+%   warning('Colour outside RGB range; clipping.')
+% end
+% if any(rgb(:) < 0)
+%   warning('Colour less than zero in RGB; clipping.')
+% end
+
+rgb(rgb(:) > 255) = 255;
+rgb(rgb(:) < 0)   = 0;
 
 
 function u = gamma_correct(u)
