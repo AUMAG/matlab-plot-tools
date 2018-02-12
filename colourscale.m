@@ -1,13 +1,13 @@
 
 function [ RGBOUT ] = colourscale( varargin )
-%COLOURSCALEPLOT Make colourful, nice-looking plots
+%COLOURSCALE Make colourful, nice-looking plots
 %  This function takes the current figure and applies a series of colours
-%  to each "line". These colours are a spectrum of saturations and intensities for
-%  a given colour hue. 
+%  to each "line". These colours are a spectrum of saturations and
+%  intensities for a given colour hue.
 %
 % COLOURSCALE(...,'hue',H)
-%  Use hue H for colour scheme. Since H is a standard "HSV" hue, it varies
-%  from zero to one, where approximately:
+%  Use hue H for colour scheme (default 0.2).
+%  H is a standard "HSV" hue, from zero to one, where approx.:
 %      H=0.0  - red
 %      H=0.1  - orange
 %      H=0.15 - yellow
@@ -19,10 +19,11 @@ function [ RGBOUT ] = colourscale( varargin )
 %      H=1.0  - red again
 %
 % COLOURSCALE(...,'chroma',C)
-%  Use chroma C for colour scheme. Chroma appears to be a nonlinear
-%  parameter with sensible maximum; values around 40 (dull) to 100 (bright)
-%  appear to be best, although higher than this produces brighter colours
-%  they also start clipping what is possible represent in RGB.
+%  Use chroma C for colour scheme (default 70).
+%  Chroma appears to be a nonlinear parameter with sensible maximum; values
+%  around 40 (dull) to 100 (bright) appear to be best, although higher than
+%  this produces brighter colours they also start clipping what is possible
+%  represent in RGB.
 %
 % COLOURSCALE(...,'lumin',[l_N L_N])
 %  Use [l_N L_N] as the range for lumin values to vary over. Lumin values
@@ -52,24 +53,30 @@ function [ RGBOUT ] = colourscale( varargin )
 %  integer.
 %
 % COLOURSCALE(...,'permute',P)
-%  By default the lines are coloured in the order in which they
-%  were plot. This order can be changed by specifying a permutation
-%  of the order using indexing, such as in a four-plot graph:
+%  By default the lines are coloured in the order in which they were plot.
+%  This order can be changed by specifying a permutation of the order using
+%  indexing, such as in a four-plot graph:
 %      colourscale(...,'permute',[1 3 2 4])
 %
-%  If the 'UserData' for a data line is 'colourscale:ignore', then
-%  it will not be included in the COLOURSCALE colouring.
+% If the 'UserData' for a data line is 'colourscale:ignore', then
+% it will not be included in the COLOURSCALE colouring.
 %
-%  RGBOUT = colourscale( ... ) will simply return the colours that
-%  would be used, but it will NOT attempt to colour the plot.
+% RGB = COLOURSCALE(...)
+%  As above, and also returns the colours in an array.
+
+
+%% COLOURSCALE  v0.1
 %
+% Copyright (c) 2017-2018 Will Robertson
+% All rights reserved.
+% Licence (BSD) appended.
 %
 % Please report bugs and feature requests for
 % this package at the development repository:
-%  <http://github.com/wspr/matlabpkg/>
-%
-% COLOURSCALE  v0.1  Will Robertson
-% Licence appended.
+%  <http://github.com/wspr/matlab-plot-tools/>
+
+
+%% Option parsing
 
 p = inputParser;
 p.addOptional('hue',0.2);
@@ -78,15 +85,17 @@ p.addOptional('repeat',1);
 p.addOptional('permute',[]);
 p.addOptional('lumin',{[65 65] [50 80] [40 80] [30 90]});
 p.addOptional('linewidth',[]);
-
 p.parse(varargin{:});
 
 hue      = p.Results.hue;
 chroma   = p.Results.chroma;
-series   = p.Results.repeat;
+Nseries  = p.Results.repeat;
 permute  = p.Results.permute;
 lumin    = p.Results.lumin;
 lw_range = p.Results.linewidth;
+
+
+%% Option massaging
 
 if ~isempty(lw_range)
   if numel(lw_range) == 1
@@ -100,15 +109,26 @@ end
 
 ch = findobj(gca,'Type','line','-not','UserData','colourscale:ignore');
 
-Nch = length(ch);
-Ncol = Nch/series;
+Nch = numel(ch);
+Ncol = Nch/Nseries;
+Nlum = numel(lumin);
+
 if round(Ncol) ~= Ncol
   % Each set of data series must be the same length to avoid rounding problems!!
   disp(['There are ',num2str(Nch),' data series'])
   error('There must be an integer multiple of specified data series in the figure.')
 end
 
-Nlum = numel(lumin);
+if isempty(permute)
+  permute = 1:Nch;
+else
+  if ~isequal(sort(permute),1:Nch)
+    error('2nd argument must be a permutation of 1:N where N is the number of colours.');
+  end
+end
+
+
+%% Calculate colours
 
 % indexing into lumin values needs a trick.
 % let's say we have lumin values of [65 50 40 30];
@@ -135,44 +155,42 @@ for ii = 1:Ncol
 end
 rgb = rgb/255;
 
-if isempty(permute)
-  permute = 1:Nch;
-else
-  if ~isequal(sort(permute),1:Nch)
-    error('2nd argument must be a permutation of 1:N where N is the number of colours.');
-  end
-end
 
-if nargout == 0
-  for ii = 1:Nch
-    ind = mod(ii-1,Ncol)+1;
-    if isequal(get(ch(ii),'type'),'line')
-      if isempty(lw_range)
-        set(ch(permute(ii)),...
-          'Color',rgb(ind,:),...
-          'UserData','colourscale:ignore')
-      else
-        set(ch(permute(ii)),...
-          'Color',rgb(ind,:),...
-          'LineWidth',lw(ind),...
-          'UserData','colourscale:ignore')
-      end
-    end
-    if isequal(get(ch(ii),'type'),'surface')
+%% Assign colours
+
+for ii = 1:Nch
+  ind = mod(ii-1,Ncol)+1;
+  if isequal(get(ch(ii),'type'),'line')
+    if isempty(lw_range)
       set(ch(permute(ii)),...
-        'FaceColor',rgb(ind,:),...
-        'EdgeColor',rgb(ind,:),...
+        'Color',rgb(ind,:),...
+        'UserData','colourscale:ignore')
+    else
+      set(ch(permute(ii)),...
+        'Color',rgb(ind,:),...
+        'LineWidth',lw(ind),...
         'UserData','colourscale:ignore')
     end
   end
-else
+  if isequal(get(ch(ii),'type'),'surface')
+    set(ch(permute(ii)),...
+      'FaceColor',rgb(ind,:),...
+      'EdgeColor',rgb(ind,:),...
+      'UserData','colourscale:ignore')
+  end
+end
+
+
+%% Fin
+
+if nargout > 0
   RGBOUT = rgb;
 end
 
 return
 
-% Copyright (c) 2015-2016, Will Robertson, will at wspr dot io
-% All rights reserved.
+
+%% Licence
 %
 % Distributed under the BSD licence in accordance with the wishes of the
 % Matlab File Exchange.
