@@ -20,9 +20,13 @@ function [ RGBOUT ] = colourscale( varargin )
 %
 % COLOURSCALE(...,'chroma',C)
 %  Use chroma C for colour scheme. Chroma appears to be a nonlinear
-%  parameter with sensible maximum; values around 40 to 100 appear to be
-%  best, although higher than this produces brighter colours they also
-%  start clipping what is possible represent in RGB.
+%  parameter with sensible maximum; values around 40 (dull) to 100 (bright)
+%  appear to be best, although higher than this produces brighter colours
+%  they also start clipping what is possible represent in RGB.
+%
+% COLOURSCALE(...,'lumin',[l_N L_N])
+%  Use [l_N L_N] as the range for lumin values to vary over. Lumin values
+%  can range from 0 (dark/black) to 100 (light).
 %
 % COLOURSCALE(...,'lumin',{[l_1 L_1] [l_2 L_2] ... [l_M L_M]})
 %  For N colours, use [l_N L_N] as the range for lumin values to vary over.
