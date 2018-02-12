@@ -53,7 +53,7 @@ for m = 1:M
     xx = linspace(0,1,p);
     yy = repmat(1:l,[p 1])+rand(p,l);
     plot(xx,yy,'linewidth',2)
-    colourscale('hue',hrange(c));
+    colourscale('hue',hrange(c),'lumin',[1 99]);
     title(['H=',num2str(hrange(c))])
     axis tight
   end

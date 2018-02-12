@@ -24,6 +24,13 @@ function [ RGBOUT ] = colourscale( varargin )
 %  best, although higher than this produces brighter colours they also
 %  start clipping what is possible represent in RGB.
 %
+% COLOURSCALE(...,'lumin',{[l_1 L_1] [l_2 L_2] ... [l_M L_M]})
+%  For N colours, use [l_N L_N] as the range for lumin values to vary over.
+%  This approach isn't the most convenient for the user but allows the most
+%  flexibility, as different lumin ranges appears best for different values
+%  of N, and for different chroma/hue combinations.
+%  If N>M then [l_M L_M] is used as the range.
+%
 % COLOURSCALE(...,'linewidth',[LW1 LW2])
 %  If not specified, the plots take on their "natural" linewidth as default
 %  or as specified by the user. If set to a two-element vector, the
@@ -34,7 +41,7 @@ function [ RGBOUT ] = colourscale( varargin )
 %
 % COLOURSCALE(...,'repeat',N)
 %  An optional argument specifies the number of times to use the
-%  colour space: e.g., colourplot(2) will turn, in a graph with 6 data
+%  colour space: e.g., colourscale(2) will turn, in a graph with 6 data
 %  series, the first and fourth plot blue, the second and fifth
 %  green, and the third and six red. The divisor of the number of
 %  plots and the number of colour space repetitions must be an
@@ -43,11 +50,11 @@ function [ RGBOUT ] = colourscale( varargin )
 % COLOURSCALE(...,'permute',P)
 %  By default the lines are coloured in the order in which they
 %  were plot. This order can be changed by specifying a permutation
-%  of the order in the second argument, such as in a four-plot graph:
-%      colourplot(1,[1 3 2 4])
+%  of the order using indexing, such as in a four-plot graph:
+%      colourscale(...,'permute',[1 3 2 4])
 %
-%  If the 'UserData' for a data line is 'colourplot:ignore', then
-%  it will not be included in the COLOURPLOT colouring.
+%  If the 'UserData' for a data line is 'colourscale:ignore', then
+%  it will not be included in the COLOURSCALE colouring.
 %
 %  RGBOUT = colourscale( ... ) will simply return the colours that
 %  would be used, but it will NOT attempt to colour the plot.
@@ -57,7 +64,7 @@ function [ RGBOUT ] = colourscale( varargin )
 % this package at the development repository:
 %  <http://github.com/wspr/matlabpkg/>
 %
-% COLOURSCALEPLOT  v0.1  Will Robertson
+% COLOURSCALE  v0.1  Will Robertson
 % Licence appended.
 
 p = inputParser;
@@ -65,18 +72,16 @@ p.addOptional('hue',0.2);
 p.addOptional('chroma',70);
 p.addOptional('repeat',1);
 p.addOptional('permute',[]);
-p.addOptional('lumin_min',[65 50 40 30]);
-p.addOptional('lumin_max',[65 80 80 90]);
+p.addOptional('lumin',{[65 65] [50 80] [40 80] [30 90]});
 p.addOptional('linewidth',[]);
 
 p.parse(varargin{:});
 
-hue     = p.Results.hue;
-chroma  = p.Results.chroma;
-series  = p.Results.repeat;
-permute = p.Results.permute;
-lumin_min = p.Results.lumin_min;
-lumin_max = p.Results.lumin_max;
+hue      = p.Results.hue;
+chroma   = p.Results.chroma;
+series   = p.Results.repeat;
+permute  = p.Results.permute;
+lumin    = p.Results.lumin;
 lw_range = p.Results.linewidth;
 
 if ~isempty(lw_range)
@@ -85,7 +90,11 @@ if ~isempty(lw_range)
   end
 end
 
-ch = findobj(gca,'Type','line','-not','UserData','colourplot:ignore');
+if isnumeric(lumin)
+  lumin = {lumin};
+end
+
+ch = findobj(gca,'Type','line','-not','UserData','colourscale:ignore');
 
 Nch = length(ch);
 Ncol = Nch/series;
@@ -95,28 +104,23 @@ if round(Ncol) ~= Ncol
   error('There must be an integer multiple of specified data series in the figure.')
 end
 
-hcl = ones(Ncol,3);
-if mod(Ncol,2) == 1
-  ncol1 = (Ncol+1)/2;
-  ncol2 = (Ncol-1)/2;
-else
-  ncol1 = Ncol/2;
-  ncol2 = Ncol/2;
-end
-v1 = hue/2; v2 = 1;
+Nlum = numel(lumin);
 
-Nlum = numel(lumin_max);
-if numel(lumin_min) ~= numel(lumin_max)
-  error('Min and max luminance vectors must be equal size.')
-end
+% indexing into lumin values needs a trick.
+% let's say we have lumin values of [65 50 40 30];
+% for n=1, lumin=65; n=3, lumin=40; etc.
+% for n=6, the index is too high, so we want n=4, which is min([n,Nlum]):
+lumin_index = min([Ncol,Nlum]);
+lmin = lumin{lumin_index}(1);
+lmax = lumin{lumin_index}(2);
 
-lmin = lumin_min(min([Ncol,Nlum]));
-lmax = lumin_max(min([Ncol,Nlum]));
-
+% for linewidths we just do linear interpolation, no need for the indexing
+% as in the above:
 if ~isempty(lw_range)
   lw = linspace(lw_range(1),lw_range(2),Ncol);
 end
 
+hcl = nan(Ncol,3);
 hcl(:,1) = hue*360;
 hcl(:,2) = chroma;
 hcl(:,3) = linspace(lmin,lmax,Ncol)';
@@ -142,19 +146,19 @@ if nargout == 0
       if isempty(lw_range)
         set(ch(permute(ii)),...
           'Color',rgb(ind,:),...
-          'UserData','colourplot:ignore')
+          'UserData','colourscale:ignore')
       else
         set(ch(permute(ii)),...
           'Color',rgb(ind,:),...
           'LineWidth',lw(ind),...
-          'UserData','colourplot:ignore')
+          'UserData','colourscale:ignore')
       end
     end
     if isequal(get(ch(ii),'type'),'surface')
       set(ch(permute(ii)),...
         'FaceColor',rgb(ind,:),...
         'EdgeColor',rgb(ind,:),...
-        'UserData','colourplot:ignore')
+        'UserData','colourscale:ignore')
     end
   end
 else
