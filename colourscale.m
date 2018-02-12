@@ -6,17 +6,17 @@ function [ RGBOUT ] = colourscale( varargin )
 %  intensities for a given colour hue.
 %
 % COLOURSCALE(...,'hue',H)
-%  Use hue H for colour scheme (default 0.2).
-%  H is a standard "HSV" hue, from zero to one, where approx.:
-%      H=0.0  - red
-%      H=0.1  - orange
-%      H=0.15 - yellow
-%      H=0.35 - green
-%      H=0.55 - light blue
-%      H=0.6  - dark blue
-%      H=0.75 - purple
-%      H=0.85 - magenta
-%      H=1.0  - red again
+%  Use hue H for colour scheme (default 20).
+%  H is a standard "HSV" hue, from 0 to 100, where approx.:
+%      H =   0 - red
+%      H =  10 - orange
+%      H =  15 - yellow
+%      H =  35 - green
+%      H =  55 - light blue
+%      H =  60 - dark blue
+%      H =  75 - purple
+%      H =  85 - magenta
+%      H = 100 - red again
 %
 % COLOURSCALE(...,'chroma',C)
 %  Use chroma C for colour scheme (default 70).
@@ -79,7 +79,7 @@ function [ RGBOUT ] = colourscale( varargin )
 %% Option parsing
 
 p = inputParser;
-p.addOptional('hue',0.2);
+p.addOptional('hue',20);
 p.addOptional('chroma',70);
 p.addOptional('repeat',1);
 p.addOptional('permute',[]);
@@ -145,7 +145,7 @@ if ~isempty(lw_range)
 end
 
 hcl = nan(Ncol,3);
-hcl(:,1) = hue*360;
+hcl(:,1) = hue*3.6;
 hcl(:,2) = chroma;
 hcl(:,3) = linspace(lmin,lmax,Ncol)';
 

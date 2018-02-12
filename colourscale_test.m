@@ -9,12 +9,12 @@ N = 3;
 % points per graph:
 p = 20;
 
-% colour: (0-1)
-HUE = 0.1;
+% colour: (0-100)
+HUE = 10;
 CHROMA = 60;
 
 % linewidths:
-LW = [2 4]; % more exaggerated than default
+LW = [0.5 4]; % more exaggerated than default
 
 figure(1)
 for m = 1:M
@@ -37,12 +37,12 @@ M = 4;
 N = 4;
 
 % lines per graph:
-l = 5;
+l = 6;
 
 % points per line:
 p = 20;
 
-hrange = linspace(0,1,M*N+1);
+hrange = linspace(0,100,M*N+1);
 hrange(end) = [];
 
 figure(2)
@@ -53,7 +53,7 @@ for m = 1:M
     xx = linspace(0,1,p);
     yy = repmat(1:l,[p 1])+rand(p,l);
     plot(xx,yy,'linewidth',2)
-    colourscale('hue',hrange(c),'lumin',[1 99]);
+    colourscale('hue',hrange(c),'lumin',[20 90]);
     title(['H=',num2str(hrange(c))])
     axis tight
   end
