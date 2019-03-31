@@ -58,3 +58,38 @@ for m = 1:M
     axis tight
   end
 end
+
+
+%% Example of different number of plots
+
+
+% number of plots to demo:
+M = 1;
+N = 1;
+
+% lines per graph:
+l = 28;
+
+% points per line:
+p = 20;
+
+hrange = linspace(0,100,M*N+1);
+hrange(end) = [];
+
+figure(2)
+m = 1;
+n = 1;
+
+c = N*(m-1)+n; % count from 1:N*M
+subplot(M,N,c); cla;
+xx = linspace(0,1,p);
+yy = repmat(1:l,[p 1])+rand(p,l);
+plot(xx,yy,'linewidth',2)
+
+x=[1:7;1:7;1:7;1:7];
+
+rgb = colourscale('hue',hrange(c),'lumin',[20 90],'repeat',4);
+
+title(['H=',num2str(hrange(c))])
+axis tight
+
