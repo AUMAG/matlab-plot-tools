@@ -22,8 +22,17 @@ function figuresize( varargin )
 %    as well as 'mm', 'cm', 'in', or 'pt'. Default 'cm'.
 %
 % figuresize(w,h,u,padscale)
-%  - Use <padscale> to adjust (can be given as a single element or
-%    two-element vector for width/height separately). Default 0.01.
+%  - Use <padscale> to adjust normalised padding added to the sides.
+%    Can be 1, 2, or 4 element vector:
+%      padscale = s              % add s*w to the left/right and
+%                                      s*h to the top/bottom
+%      padscale = [sw sh]        % add sw*w to the left/right and
+%                                      sh*h to the top/bottom
+%      padscale = [sl sr st sb]  % add sl*w to the left, sr*w to the right,
+%                                      st*h to the top, and sb*h to the bottom
+%    Default [0 0 0 0.1] -- add some padding at bottom only due to a
+%    longstanding limitation of how Matlab produces PDFs at small physical
+%    sizes, where "small" is approx <10cm in height.
 
 
 if numel(varargin) == 0
@@ -32,7 +41,7 @@ if numel(varargin) == 0
 end
 
 if numel(varargin) == 1
-  figure(varargin{:}); clf; hold on
+  figure(varargin{:}); clf; hold on; box on
   figuresize();
   return
 end
@@ -44,7 +53,7 @@ p.addRequired('width', @(x) isnumeric(x) && all(size(x)==1) );
 p.addRequired('height',@(x) isnumeric(x) && all(size(x)==1) );
 p.addOptional('units','centimeters',...
   @(x) any(strcmpi(x,allowed_units)) );
-p.addOptional('padscale',0.01, @(x) isnumeric(x) )
+p.addOptional('padscale',[0.0 0.0 0.0 0.1], @(x) isnumeric(x) )
 
 p.parse( varargin{:} );
 w = p.Results.width;
@@ -52,8 +61,10 @@ h = p.Results.height;
 u = p.Results.units;
 s = p.Results.padscale;
 
-if numel(s) == 1
-  s = [s s];
+switch numel(s)
+  case 1,  s = [s s s s];
+  case 2,  s = [s(1) s(1) s(2) s(2)];
+  case 3,  error('1, 2, or 4 elements only');
 end
 
 switch u
@@ -69,8 +80,8 @@ screenpos = get(gcf,'Position');
 set(gcf,...
   'Position',[screenpos(1:2) w h],...
   'PaperUnits',u,...
-  'PaperPosition',[s(1)*w s(2)*h w h],...
-  'PaperSize',[w*(1+2*s(1)) h*(1+2*s(2))]);
+  'PaperPosition',[s(1)*w s(4)*h w h],...
+  'PaperSize',[w*(1+s(1)+s(2)) h*(1+s(3)+s(4))]);
 
 end
 
