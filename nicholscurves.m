@@ -54,7 +54,7 @@ if numel(mlabelangle) == 2
 else
   assert(numel(mlabelangle)==numel(Gains));
 end
-  
+
 % Freeze current plot
 hold_bool = false;
 if ishold
@@ -68,107 +68,10 @@ if p.Results.axislabels
    ylabel('Amplitude, dB')
 end
 
-%% Draw M-circles
-
-% Define equations that determine the M-circles
-RadM=@(m) abs(m/(m^2-1));
-CentreM=@(m) m^2/(1-m^2);
-Ny=@(mdb,t) CentreM(10^(mdb/20))+RadM(10^(mdb/20)).*(cosd(t)+1i.*sind(t));
-Ni_Ph=@(mdb,t) rad2deg(unwrap(angle(Ny(mdb,t))));
-Ni_Ga=@(mdb,t) 20.*log10(abs(Ny(mdb,t)));
-
-% Generate the colour space
-CalcRgb=@(mdb) hsv2rgb([((mdb-min(Gains))/(max(Gains)-min(Gains)))^1.5 circles_sat 0.8]);
-
-if frag_bool
-  user_data = @(nn) ['matlabfrag:',...
-                     '\fboxsep=1pt\colorbox{white}{$\,',...
-                     num2str(nn),...
-                     '$\,dB}'];
-else
-  user_data = @(nn) '';
-end
-
-
-
-% Apply M-circle equations and plot the result
-c = 0;
-for i=Gains
-  c = c+1;
-    PVals=Ni_Ph(i,0:0.1:360);
-    GVals=Ni_Ga(i,0:0.1:360);
-    for j=PCyc(1):PCyc(2)-1
-      plot(PVals+j*360,GVals,'color',CalcRgb(i),'linewidth',LWidth);
-      if mlabels_bool
-        mla = mlabelangle(c);
-        if mla > 180
-          offset = (j+1)*360;
-        else
-          offset = j*360;
-        end
-        TextX=Ni_Ph(i,mla)+offset;
-        TextY=Ni_Ga(i,mla);
-        text(TextX,TextY,[num2str(i) 'dB'],...
-          'FontSize',LSize,..., ...
-          'horizontalalignment','center',...
-          'UserData',user_data(i));
-      end
-    end
-end
-
-%% Draw N-circles
-
-% Define equations that determine the N-circles
-RadN=@(phi) 1./(2.*abs(sind(phi)));
-Ny_Re=@(phi,t) -0.5+RadN(phi).*cosd(t+mod(phi,180)-90);
-Ny_Im=@(phi,t) 1./(2.*tand(phi))+RadN(phi).*sind(t+mod(phi,180)-90);
-Ni_Ph=@(phi,t) rad2deg(unwrap(angle(Ny_Re(phi,t)+1i*Ny_Im(phi,t))))+360*floor(phi/360);
-Ni_Ga=@(phi,t) 20.*log10(abs(Ny_Re(phi,t)+1i*Ny_Im(phi,t)));
-Ni_La=@(phase) 0.090*10^(phase/60);
-
-% Create input vectors
-Phi=PCyc(1)*360:PInc:PCyc(2)*360;
-T1=logspace(-4,log10(180),300);
-T2=[T1 360-fliplr(T1)];
-
-if frag_bool
-  user_data = @(nn) ['matlabfrag:',...
-                     '\fboxsep=0pt\colorbox{white}{$\,',...
-                     num2str(nn),...
-                     '$\textdegree}'];
-else
-  user_data = @(nn) '';
-end
-
-% Apply N-circle equations and plot the result
-for i=Phi
-    if abs(sind(i))<1e-3
-        plot([i i],[-110,25],'color',0.75*[1 1 1],'linewidth',LWidth);
-        if cosd(i)>0
-            TextX=i;
-            TextY=1;
-        else
-            TextX=i;
-            TextY=-46.5;
-        end
-    else
-        plot(Ni_Ph(i,T2),Ni_Ga(i,T2),'color',0.75*[1 1 1],'linewidth',LWidth);
-        Offset=i-180*floor(i/180);
-        if(sign(sind(i))==1)
-            TextX=Ni_Ph(i,Ni_La(180-Offset));
-            TextY=Ni_Ga(i,Ni_La(180-Offset));
-        else
-            TextX=Ni_Ph(i,-Ni_La(Offset))+360;
-            TextY=Ni_Ga(i,-Ni_La(Offset));
-        end
-    end
-    if nlabels_bool
-      text(TextX,TextY,[num2str(i),'°'],...
-        'FontSize',LSize,...
-        'horizontalalignment','center',...
-        'UserData',user_data(i));
-    end
-end
+draw_ncircles('labels',false)
+draw_mcircles('labels',false)
+draw_ncircles('labels',true)
+draw_mcircles('labels',true)
 
 %% Finish up
 
@@ -182,4 +85,116 @@ axis([PCyc(1)*360-15 PCyc(2)*360+15 -80 30]);
 % Unfreeze current plot
 if ~hold_bool, hold off; end
 
+%%
+
+  function draw_mcircles(~,lbl)
+
+    % Define equations that determine the M-circles
+    RadM=@(m) abs(m/(m^2-1));
+    CentreM=@(m) m^2/(1-m^2);
+    Ny=@(mdb,t) CentreM(10^(mdb/20))+RadM(10^(mdb/20)).*(cosd(t)+1i.*sind(t));
+    Ni_Ph=@(mdb,t) rad2deg(unwrap(angle(Ny(mdb,t))));
+    Ni_Ga=@(mdb,t) 20.*log10(abs(Ny(mdb,t)));
+
+    % Generate the colour space
+    CalcRgb=@(mdb) hsv2rgb([((mdb-min(Gains))/(max(Gains)-min(Gains)))^1.5 circles_sat 0.8]);
+
+    if frag_bool
+      user_data = @(nn) ['matlabfrag:',...
+        '\fboxsep=1pt\colorbox{white}{$\,',...
+        num2str(nn),...
+        '$\,dB}'];
+    else
+      user_data = @(nn) '';
+    end
+
+    % Apply M-circle equations and plot the result
+    c = 0;
+    for i=Gains
+      c = c+1;
+      PVals=Ni_Ph(i,0:0.1:360);
+      GVals=Ni_Ga(i,0:0.1:360);
+      for j=PCyc(1):PCyc(2)-1
+        if ~lbl
+          plot(PVals+j*360,GVals,'color',CalcRgb(i),'linewidth',LWidth);
+        end
+        if mlabels_bool && lbl
+          mla = mlabelangle(c);
+          if mla > 180
+            offset = (j+1)*360;
+          else
+            offset = j*360;
+          end
+          TextX=Ni_Ph(i,mla)+offset;
+          TextY=Ni_Ga(i,mla);
+          text(TextX,TextY,[num2str(i) 'dB'],...
+            'FontSize',LSize,..., ...
+            'horizontalalignment','center',...
+            'verticalalignment','bottom',...
+            'UserData',user_data(i));
+        end
+      end
+    end
+
+  end
+
+  function draw_ncircles(~,lbl)
+
+    % Define equations that determine the N-circles
+    RadN=@(phi) 1./(2.*abs(sind(phi)));
+    Ny_Re=@(phi,t) -0.5+RadN(phi).*cosd(t+mod(phi,180)-90);
+    Ny_Im=@(phi,t) 1./(2.*tand(phi))+RadN(phi).*sind(t+mod(phi,180)-90);
+    Ni_Ph=@(phi,t) rad2deg(unwrap(angle(Ny_Re(phi,t)+1i*Ny_Im(phi,t))))+360*floor(phi/360);
+    Ni_Ga=@(phi,t) 20.*log10(abs(Ny_Re(phi,t)+1i*Ny_Im(phi,t)));
+    Ni_La=@(phase) 0.090*10^(phase/60);
+
+    % Create input vectors
+    Phi=PCyc(1)*360:PInc:PCyc(2)*360;
+    T1=logspace(-4,log10(180),300);
+    T2=[T1 360-fliplr(T1)];
+
+    if frag_bool
+      user_data = @(nn) ['matlabfrag:',...
+        '\fboxsep=0pt\colorbox{white}{$\,',...
+        num2str(nn),...
+        '$\textdegree}'];
+    else
+      user_data = @(nn) '';
+    end
+
+    % Apply N-circle equations and plot the result
+    for i=Phi
+      if abs(sind(i))<1e-3
+        if ~lbl
+          plot([i i],[-110,25],'color',0.75*[1 1 1],'linewidth',LWidth);
+        end
+        if cosd(i)>0
+          TextX=i;
+          TextY=1;
+        else
+          TextX=i;
+          TextY=-46.5;
+        end
+      else
+        if ~lbl
+          plot(Ni_Ph(i,T2),Ni_Ga(i,T2),'color',0.75*[1 1 1],'linewidth',LWidth);
+        end
+        Offset=i-180*floor(i/180);
+        if(sign(sind(i))==1)
+          TextX=Ni_Ph(i,Ni_La(180-Offset));
+          TextY=Ni_Ga(i,Ni_La(180-Offset));
+        else
+          TextX=Ni_Ph(i,-Ni_La(Offset))+360;
+          TextY=Ni_Ga(i,-Ni_La(Offset));
+        end
+      end
+      if nlabels_bool && lbl
+        text(TextX,TextY,[num2str(i),'°'],...
+          'FontSize',LSize,...
+          'horizontalalignment','center',...
+          'UserData',user_data(i));
+      end
+    end
+
+  end
 end
