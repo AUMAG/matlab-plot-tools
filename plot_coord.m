@@ -8,22 +8,35 @@ function plot_coord(origin,varargin)
 % ------------------------------------------------------------------------
 % KEY           VALUE    DESCRIPTION
 % ------------------------------------------------------------------------
+% 'rotate'      [AX AY AZ] 3x3 rotation matrix where AX,AY,AZ are the
+%                        vectors of each axis
+%            OR 
 % 'rotate'      [u v w]  Rotate coordinates 'u' degrees around the 1st axis
 %                                           'v' degrees around the 2nd axis
-%                                           'w' degrees around the 3rd axis
+% &                                         'w' degrees around the 3rd axis
 % 'order'       [r1 r2 r3] Order of rotation, default [3 2 1] for [Z Y X]
-% 'axes'        ['x' and/or 'y' and/or 'z']
-%                        Only plot axes listed
-% 'labels'      [true/false]
-%                        Whether to print coordinate system labels
-% 'index'       str      String index on labels (default str='1')
 % ------------------------------------------------------------------------
-% 'length'      L        Length of axes lines
-% 'headlength'  R        Length of arrow head
-% 'arrowangle'  a        Angle of arrowhead "quills"
+% 'length'      L        Length of axes lines (default 0.05)
+% 'headlength'  R        Length of arrow head (default (0.02)
+% 'arrowangle'  a        Angle of arrowhead "quills" in degrees (default 25)
+% 'linewidth'   w        Linewidth of axes lines and arrow outline (default 0.4)
+% ------------------------------------------------------------------------
 % 'linecolour'  [R G B]  Red-Green-Blue colour of axis lines
 % 'headcolour'  [R G B]  Red-Green-Blue colour of arrowhead faces
 % 'headopacity' C        Opacity of arrowhead faces
+% ------------------------------------------------------------------------
+% 'axes'        ['x' and/or 'y' and/or 'z']
+%                        Only plot axes listed (default 'xyz')
+% 'labels'      [true/false]
+%                        Whether to print coordinate system labels (default false)
+% 'labelframe'  [true/false]
+%                        Whether to print a "frame" label (default false)
+% 'labelaxes'   [true/false]
+%                        Whether to print coordinate system labels (default false)
+% 'labelshift'  l        Shift label away from end of axis/frame (default 0.01)
+% 'index'       str      String index on labels; omit if empty (default '')
+% ------------------------------------------------------------------------
+% 'fontsize'    Font size for labels (default same as Matlab)
 % ------------------------------------------------------------------------
 
 %% Parse inputs:
@@ -35,12 +48,17 @@ p.addOptional('order',[1 2 3]);
 p.addOptional('length',0.05);
 p.addOptional('headlength',0.02);
 p.addOptional('arrowangle',25);
-p.addOptional('index','1');
-p.addOptional('labels',true);
+p.addOptional('index','');
+p.addOptional('labels',false);
+p.addOptional('labelframe',false);
+p.addOptional('labelaxes',false);
 p.addOptional('axes','xyz');
 p.addParameter('linecolour',[0 0 0]);
+p.addParameter('linewidth',0.4);
 p.addParameter('headcolour',0.5*[1 1 1]);
 p.addParameter('headopacity',0.9);
+p.addParameter('labelshift',0.01);
+p.addParameter('fontsize',get(0,'defaulttextfontsize'));
 p.parse(origin,varargin{:})
 
 O      = p.Results.origin;
@@ -49,16 +67,29 @@ hl     = p.Results.headlength;
 ang    = p.Results.arrowangle;
 
 r    = p.Results.rotate;
-ro    = p.Results.order;
-ni   = p.Results.index;
-ecol = p.Results.linecolour;
-col  = p.Results.headcolour;
-opac = p.Results.headopacity;
-labels_bool = p.Results.labels;
+ro   = p.Results.order;
 plot_axes = p.Results.axes;
 
-% Constant that should actually be optional input
-nameshift = 0.01;
+ecol = p.Results.linecolour;
+lw   = p.Results.linewidth;
+
+col  = p.Results.headcolour;
+opac = p.Results.headopacity;
+
+labels_bool = p.Results.labels;
+labelframe_bool = p.Results.labelframe;
+labelaxes_bool  = p.Results.labelaxes;
+labelshift = p.Results.labelshift;
+
+fontsize = p.Results.fontsize;
+
+%%
+
+if isempty(p.Results.index)
+  index_label = '';
+else
+  index_label = ['_{',p.Results.index,'}'];
+end
 
 %% Definition of a single axis (X)
 %
@@ -74,7 +105,6 @@ head2 = [ax pxz pxz.*[1; 1; -1]]; % arrowhead points in XZ plane
 if numel(r) == 3
   c = cosd(r);
   s = sind(r);
-
   RxRyRz(:,:,1) = [1 0 0; 0 c(1) -s(1); 0 s(1) c(1)];
   RxRyRz(:,:,2) = [c(2) 0 s(2); 0 1 0; -s(2) 0 c(2)];
   RxRyRz(:,:,3) = [c(3) -s(3) 0; s(3) c(3) 0; 0 0 1];
@@ -91,61 +121,37 @@ end
 hold on
 
 if strcmp(plot_axes,'xyz')
-  if labels_bool
-    text(-nameshift+O(1),-nameshift+O(2),O(3),['O_{',ni,'}']);
+  if labels_bool || labelframe_bool
+    text(-labelshift+O(1),-labelshift+O(2),-labelshift+O(3),['O',index_label],'fontsize',fontsize);
   end
 end
+
+RX = R;
+RY = R*[0 -1 0;1 0 0;0 0 1]; % Rz(+90);
+RZ = R*[0 0 -1;0 1 0;1 0 0]; % Ry(-90);
 
 for s = plot_axes
   switch s
     case 'x'
-      plot_one_coord(O,R*ax,        R*head1,        R*head2,        ['x_{',ni,'}'],[2*nameshift; 0; 0])
+      plot_one_coord(O,RX*ax,RX*head1,RX*head2,['x',index_label],[labelshift; 0; 0])
     case 'y'
-      plot_one_coord(O,R*Rz(+90)*ax,R*Rz(+90)*head1,R*Rz(+90)*head2,['y_{',ni,'}'],[0; nameshift; 0])
+      plot_one_coord(O,RY*ax,RY*head1,RY*head2,['y',index_label],[0; labelshift; 0])
     case 'z'
-      plot_one_coord(O,R*Ry(-90)*ax,R*Ry(-90)*head1,R*Ry(-90)*head2,['z_{',ni,'}'],[0; 0; nameshift])
+      plot_one_coord(O,RZ*ax,RZ*head1,RZ*head2,['z',index_label],[0; 0; labelshift])
   end
 end
 
 %% Nested functions
 
   function plot_one_coord(O,a,head1,head2,name,ns)
-    if labels_bool
-      text(ns(1)+O(1)+a(1),ns(2)+O(2)+a(2),ns(3)+O(3)+a(3),name);
+    if labels_bool || labelaxes_bool
+      text(ns(1)+O(1)+a(1),ns(2)+O(2)+a(2),ns(3)+O(3)+a(3),name,'fontsize',fontsize);
     end
 
-    plot3(O(1)+[0 a(1)],O(2)+[0 a(2)],O(3)+[0 a(3)],'color',ecol);
-    patch(O(1)+head1(1,:),O(2)+head1(2,:),O(3)+head1(3,:),ecol,'facealpha',opac,'facecolor',col);
-    patch(O(1)+head2(1,:),O(2)+head2(2,:),O(3)+head2(3,:),ecol,'facealpha',opac,'facecolor',col);
+    plot3(O(1)+[0 a(1)],O(2)+[0 a(2)],O(3)+[0 a(3)],'color',ecol,'linewidth',lw);
+    patch(O(1)+head1(1,:),O(2)+head1(2,:),O(3)+head1(3,:),ecol,'facealpha',opac,'facecolor',col,'linewidth',lw);
+    patch(O(1)+head2(1,:),O(2)+head2(2,:),O(3)+head2(3,:),ecol,'facealpha',opac,'facecolor',col,'linewidth',lw);
   end
 
 end
 
-%% Rotation matrices
-%
-% These could all be anonymous functions if we wanted.
-
-function R = Rz(t)
-R = [cosd(t) -sind(t) 0;
-     sind(t)  cosd(t) 0;
-     0        0       1];
-end
-
-function R = Ry(t)
-R = [ cosd(t) 0  sind(t);
-      0       1  0;
-     -sind(t) 0  cosd(t)];
-end
-
-function R = Rx(t)
-R = [1 0        0      ;
-     0 cosd(t) -sind(t);
-     0 sind(t)  cosd(t)];
-end
-
-% assert( all( Rx(90)*[0;1;0]==[ 0; 0; 1]) )
-% assert( all( Rz(90)*[0;1;0]==[-1; 0; 0]) )
-% assert( all( Ry(90)*[1;0;0]==[ 0; 0;-1]) )
-% assert( all( Rz(90)*[1;0;0]==[ 0; 1; 0]) )
-% assert( all( Rx(90)*[0;0;1]==[ 0;-1; 0]) )
-% assert( all( Ry(90)*[0;0;1]==[ 1; 0; 0]) )
