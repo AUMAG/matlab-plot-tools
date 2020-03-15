@@ -79,14 +79,16 @@ function [ RGBOUT ] = colourscale( varargin )
 %% Option parsing
 
 p = inputParser;
-p.addOptional('hue',20);
-p.addOptional('chroma',70);
-p.addOptional('repeat',1);
-p.addOptional('permute',[]);
-p.addOptional('lumin',{[65 65] [50 80] [40 80] [30 90]});
-p.addOptional('linewidth',[]);
+p.addOptional('ch',findobj(gca,'Type','line','-not','UserData','colourscale:ignore'),@(x) all(isgraphics(x,'line')));
+p.addOptional('hue',20,@isnumeric);
+p.addOptional('chroma',70,@isnumeric);
+p.addOptional('repeat',1,@isnumeric);
+p.addOptional('permute',[],@isnumeric);
+p.addOptional('lumin',{[65 65] [50 80] [40 80] [30 90]},@(x) iscell(x) || isnumeric(x));
+p.addOptional('linewidth',[],@isnumeric);
 p.parse(varargin{:});
 
+ch       = p.Results.ch;
 hue      = p.Results.hue;
 chroma   = p.Results.chroma;
 Nseries  = p.Results.repeat;
@@ -106,8 +108,6 @@ end
 if isnumeric(lumin)
   lumin = {lumin};
 end
-
-ch = findobj(gca,'Type','line','-not','UserData','colourscale:ignore');
 
 Nch = numel(ch);
 Ncol = Nch/Nseries;
