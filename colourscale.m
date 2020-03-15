@@ -1,5 +1,5 @@
 
-function [ RGBOUT ] = colourscale( varargin )
+function [ RGBOUT, LINEPROPOUT ] = colourscale( varargin )
 %COLOURSCALE Make colourful, nice-looking plots
 %  This function takes the current figure and applies a series of colours
 %  to each "line". These colours are a spectrum of saturations and
@@ -79,7 +79,7 @@ function [ RGBOUT ] = colourscale( varargin )
 %% Option parsing
 
 p = inputParser;
-p.addOptional('ch',findobj(gca,'Type','line','-not','UserData','colourscale:ignore'),@(x) all(isgraphics(x,'line')));
+p.addOptional('ch',findobj(gca,'Type','line','-not','UserData','colourscale:ignore'),@(x) all(isgraphics(x,'line')) || (isscalar(x)&&isnumeric(x)));
 p.addOptional('hue',20,@isnumeric);
 p.addOptional('chroma',70,@isnumeric);
 p.addOptional('repeat',1,@isnumeric);
@@ -109,7 +109,14 @@ if isnumeric(lumin)
   lumin = {lumin};
 end
 
-Nch = numel(ch);
+if isscalar(ch) && isnumeric(ch)
+    do_apply_colours = false;
+    Nch = ch;
+else
+    do_apply_colours = true;
+    Nch = numel(ch);
+end
+
 Ncol = Nch/Nseries;
 Nlum = numel(lumin);
 
@@ -158,33 +165,51 @@ rgb = rgb/255;
 
 %% Assign colours
 
-for ii = 1:Nch
-  ind = mod(ii-1,Ncol)+1;
-  if isequal(get(ch(ii),'type'),'line')
-    if isempty(lw_range)
-      set(ch(permute(ii)),...
-        'Color',rgb(ind,:),...
-        'UserData','colourscale:ignore')
-    else
-      set(ch(permute(ii)),...
-        'Color',rgb(ind,:),...
-        'LineWidth',lw(ind),...
-        'UserData','colourscale:ignore')
+if do_apply_colours
+    for ii = 1:Nch
+      ind = mod(ii-1,Ncol)+1;
+      if isequal(get(ch(ii),'type'),'line')
+        if isempty(lw_range)
+          set(ch(permute(ii)),...
+            'Color',rgb(ind,:),...
+            'UserData','colourscale:ignore')
+        else
+          set(ch(permute(ii)),...
+            'Color',rgb(ind,:),...
+            'LineWidth',lw(ind),...
+            'UserData','colourscale:ignore')
+        end
+      end
+      if isequal(get(ch(ii),'type'),'surface')
+        set(ch(permute(ii)),...
+          'FaceColor',rgb(ind,:),...
+          'EdgeColor',rgb(ind,:),...
+          'UserData','colourscale:ignore')
+      end
     end
-  end
-  if isequal(get(ch(ii),'type'),'surface')
-    set(ch(permute(ii)),...
-      'FaceColor',rgb(ind,:),...
-      'EdgeColor',rgb(ind,:),...
-      'UserData','colourscale:ignore')
-  end
+else
+    for ii = 1:Nch
+        ind = mod(ii-1,Ncol)+1;
+        if isempty(lw_range)
+            lineprop(permute(ii),:) = {
+                'Color',rgb(ind,:),...
+            };
+        else
+            lineprop(permute(ii),:) = {
+                'Color',rgb(ind,:),...
+                'LineWidth',lw(ind),...
+            };
+        end
+    end
 end
-
 
 %% Fin
 
 if nargout > 0
   RGBOUT = rgb;
+end
+if nargout > 1
+  LINEPROPOUT = lineprop;
 end
 
 return
