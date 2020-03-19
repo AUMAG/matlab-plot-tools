@@ -5,6 +5,14 @@ function [ RGBOUT, LINEPROPOUT ] = colourscale( varargin )
 %  to each "line". These colours are a spectrum of saturations and
 %  intensities for a given colour hue.
 %
+% COLOURSCALE(...,'ch',CH)
+%  Use CH to specify the mode of operation:
+%      CH is empty - apply colours to any lines present in the active axis 
+%                    except lines for which UserData = 'colourscale:ignore'
+%      CH is array of line handles - apply colours to specified lines 
+%      CH is an integer - generate CH number of colours (RBGOUT) and line 
+%                         properties (LINEPROPOUT) to be used later
+%
 % COLOURSCALE(...,'hue',H)
 %  Use hue H for colour scheme (default 20).
 %  H is a standard "HSV" hue, from 0 to 100, where approx.:
@@ -58,11 +66,15 @@ function [ RGBOUT, LINEPROPOUT ] = colourscale( varargin )
 %  indexing, such as in a four-plot graph:
 %      colourscale(...,'permute',[1 3 2 4])
 %
-% If the 'UserData' for a data line is 'colourscale:ignore', then
-% it will not be included in the COLOURSCALE colouring.
+% RGBOUT = COLOURSCALE(...)
+%  As above, and also returns the colours in a CH x 3 array.
 %
-% RGB = COLOURSCALE(...)
-%  As above, and also returns the colours in an array.
+% [RGBOUT,LINEPROPSOUT] = COLOURSCALE(...)
+%  As above, and also returns the line properties in a CH x 2 or CH x 4 
+%  cell array. Example:
+%      [RGBOUT,LINEPROPSOUT] = COLOURSCALE(...,'ch',2);
+%      plot(x1,y1,LINEPROPSOUT{1,:});
+%      plot(x2,y2,LINEPROPSOUT{2,:});
 
 
 %% COLOURSCALE  v0.1
@@ -164,18 +176,18 @@ rgb = rgb/255;
 
 
 %% Assign colours
-    for ii = 1:Nch
-        ind = mod(ii-1,Ncol)+1;
-        if isempty(lw_range)
-            lineprop(permute(ii),:) = {
-                'Color',rgb(ind,:),...
-            };
-        else
-            lineprop(permute(ii),:) = {
-                'Color',rgb(ind,:),...
-                'LineWidth',lw(ind),...
-            };
-        end
+for ii = 1:Nch
+    ind = mod(ii-1,Ncol)+1;
+    if isempty(lw_range)
+        lineprop(permute(ii),:) = {
+            'Color',rgb(ind,:),...
+        };
+    else
+        lineprop(permute(ii),:) = {
+            'Color',rgb(ind,:),...
+            'LineWidth',lw(ind),...
+        };
+    end
     if do_apply_colours
         set(ch(permute(ii)), lineprop{permute(ii),:});
     end
