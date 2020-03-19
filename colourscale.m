@@ -164,30 +164,6 @@ rgb = rgb/255;
 
 
 %% Assign colours
-
-if do_apply_colours
-    for ii = 1:Nch
-      ind = mod(ii-1,Ncol)+1;
-      if isequal(get(ch(ii),'type'),'line')
-        if isempty(lw_range)
-          set(ch(permute(ii)),...
-            'Color',rgb(ind,:),...
-            'UserData','colourscale:ignore')
-        else
-          set(ch(permute(ii)),...
-            'Color',rgb(ind,:),...
-            'LineWidth',lw(ind),...
-            'UserData','colourscale:ignore')
-        end
-      end
-      if isequal(get(ch(ii),'type'),'surface')
-        set(ch(permute(ii)),...
-          'FaceColor',rgb(ind,:),...
-          'EdgeColor',rgb(ind,:),...
-          'UserData','colourscale:ignore')
-      end
-    end
-else
     for ii = 1:Nch
         ind = mod(ii-1,Ncol)+1;
         if isempty(lw_range)
@@ -200,6 +176,8 @@ else
                 'LineWidth',lw(ind),...
             };
         end
+    if do_apply_colours
+        set(ch(permute(ii)), lineprop{permute(ii),:});
     end
 end
 
